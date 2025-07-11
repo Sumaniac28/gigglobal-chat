@@ -1,4 +1,4 @@
-import { CustomError, IAuthPayload, IErrorResponse, winstonLogger } from '@sumaniac28/gigglobal-helper-v1';
+import { IAuthPayload, winstonLogger } from '@sumaniac28/gigglobal-helper-v1';
 import { Logger } from 'winston';
 import { config } from '@chat/config';
 import { Application, json, NextFunction, Request, Response, urlencoded } from 'express';
@@ -13,6 +13,9 @@ import { appRoutes } from '@chat/route';
 import { Channel } from 'amqplib';
 import { Server } from 'socket.io';
 import { createConnection } from '@chat/queues/connection';
+import { errorHandler } from '@chat/error-handler';
+
+import 'express-async-errors';
 
 const SERVER_PORT = 4005;
 const log: Logger = winstonLogger(
@@ -77,13 +80,14 @@ const startElasticSearch = (): void => {
 };
 
 const chatErrorHandler = (app: Application): void => {
-  app.use((error: IErrorResponse, _req: Request, res: Response, next: NextFunction) => {
-    if (error instanceof CustomError) {
-      log.log('error', `ChatService ${error.comingFrom}:`, error);
-      res.status(error.statusCode).json(error.serializeErrors());
-    }
-    next();
-  });
+  // app.use((error: IErrorResponse, _req: Request, res: Response, next: NextFunction) => {
+  //   if (error instanceof CustomError) {
+  //     log.log('error', `ChatService ${error.comingFrom}:`, error);
+  //     res.status(error.statusCode).json(error.serializeErrors());
+  //   }
+  //   next();
+  // });
+  app.use(errorHandler);
 };
 
 const startServer = async (app: Application): Promise<void> => {
